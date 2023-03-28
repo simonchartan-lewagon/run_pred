@@ -47,7 +47,6 @@ def clean_data(path):
     # Drop duplicates
     run = run.drop_duplicates()
 
-
     # Cleaning columns
 
     ## athlete_id
@@ -86,7 +85,7 @@ def clean_data(path):
     ### We might come back to this point and decide to rather drop the whole column
     ### in case the model performance does not increase with the average_heart_rate
     ### and its derived features.
-    run = run[~(run.average_heart_rate.isnull())]
+    run = run[~(run.average_heart_rate.isna())]
 
     # Finally, reindexing the dataset and re-formatting
     run = run.reset_index(drop = True)
@@ -106,4 +105,5 @@ def clean_data(path):
 if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     assert(dataset.shape == (22097,7))
-    #print(dataset.shape)
+    print(dataset.shape)
+    print(dataset.athlete_id.nunique())

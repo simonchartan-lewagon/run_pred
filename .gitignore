@@ -2,3 +2,5 @@ raw_data/
 notebooks/
 .python-version
 .ipynb_checkpoints/
+run_pred.egg-info/
+__pycache__/
