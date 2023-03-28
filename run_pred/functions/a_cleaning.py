@@ -87,6 +87,12 @@ def clean_data(path):
     ### and its derived features.
     run = run[~(run.average_heart_rate.isna())]
 
+    ## pace
+    ### --> Removing the pace outliers
+    run['pseudo_distance'] = run.distance + 10 * run.elevation_gain # 1
+    run['pseudo_pace'] = (run.time/60) / (run.pseudo_distance/1000) # min/km
+    run = run[((run.pseudo_pace >= 2.5) & (run.pseudo_pace <= 15))]
+
     # Finally, reindexing the dataset and re-formatting
     run = run.reset_index(drop = True)
     run = run[[
@@ -104,6 +110,6 @@ def clean_data(path):
 
 if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
-    assert(dataset.shape == (22097,7))
+    assert(dataset.shape == (22036,7))
     print(dataset.shape)
     print(dataset.athlete_id.nunique())
