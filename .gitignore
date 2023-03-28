@@ -1,1 +1,4 @@
 raw_data/
+notebooks/
+.python-version
+.ipynb_checkpoints/
