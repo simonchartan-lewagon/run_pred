@@ -1,2 +1,4 @@
 pandas
 numpy
+imbalanced-learn
+sklearn.model_selection
