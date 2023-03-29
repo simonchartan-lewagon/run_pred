@@ -1,10 +1,22 @@
 # Importation des librairies nécessaires
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OneHotEncoder
+from run_pred.functions.a_cleaning import clean_data
+from run_pred.functions.b_splitting import split_data
+from run_pred.functions.c_feature_engineering import engineer_features
+from run_pred.functions.b_balancing import balance_data
 
-#Standard
-def scaler_features(X_train, X_test):
+
+def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
+
+    X_train_scaled, X_test_scaled = scale_features(X_train=X_train, X_test=X_test, scaler = scaler)
+    X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled)
+
+    return X_train_scaled_encoded, X_test_scaled_encoded
+
+
+def scale_features(X_train, X_test, scaler = StandardScaler()):
     """
     This function applies the variable scaling method to the numerical variables of a dataset. It returns both datasets with the numerical variables scaled.
 
@@ -14,33 +26,58 @@ def scaler_features(X_train, X_test):
 
     Returns:
     (pandas.DataFrame, pandas.DataFrame): A tuple of two DataFrames containing the scaled training and test datasets, respectively, with the numerical variables scaled
-
     """
-	# Sélection des variables numériques
-    X_train_float = X_train.select_dtypes(include='float')
-    X_test_float = X_test.select_dtypes(include='float')
 
-	# Sélection des variables non numériques et réinitialisation de l'index
-    X_train_ex = X_train.select_dtypes(exclude='float').reset_index()
-    X_test_ex = X_test.select_dtypes(exclude='float').reset_index()
+	# Numerical vs other variables
+    numeric = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
-	# Application de la méthode StandardScaler aux variables numériques
-    scaler = StandardScaler()
-    X_train_float_scaller = pd.DataFrame(scaler.fit_transform(X_train_float),columns= X_train_float.columns)
-    X_test_float_scaller = pd.DataFrame(scaler.transform(X_test_float), columns= X_test_float.columns)
+    X_train_incl_num = X_train.select_dtypes(include=numeric)
+    X_test_incl_num = X_test.select_dtypes(include=numeric)
 
-	# Concaténation des variables numériques et non numériques
-    X_train_scaller = pd.concat([X_train_ex, X_train_float_scaller],axis=1)
-    X_test_scaller =  pd.concat([X_test_ex, X_test_float_scaller])
-    X_train_scaller = X_train_scaller.drop(columns='index')
-    X_test_scaller = X_test_scaller.drop(columns='index')
+    X_train_excl_num = X_train.select_dtypes(exclude=numeric)
+    X_test_excl_num = X_test.select_dtypes(exclude=numeric)
 
-    return X_train_scaller, X_test_scaller
+	# Applying the chosen scaling method
+    scaler = scaler
+    X_train_num_scaled = pd.DataFrame(scaler.fit_transform(X_train_incl_num),columns= X_train_incl_num.columns)
+    X_test_num_scaled = pd.DataFrame(scaler.transform(X_test_incl_num),columns= X_test_incl_num.columns)
+
+    # Concaténation des variables numériques et non numériques
+    X_train_scaled = X_train_excl_num.join(X_train_num_scaled, on = X_train_excl_num.index)
+    X_test_scaled = X_test_excl_num.join(X_test_num_scaled, on = X_test_excl_num.index)
+
+    #X_train_scaled = pd.concat([X_train_excl_num, X_train_num_scaled],axis=1)
+    #X_test_scaled =  pd.concat([X_test_excl_num, X_test_num_scaled],axis=1)
+
+    return X_train_scaled, X_test_scaled
+
+def encode_features(X_train, X_test):
+
+    features_ohe = ['gender']
+
+    X_train_cat = X_train[features_ohe]
+    X_test_cat = X_test[features_ohe]
+
+    ohe = OneHotEncoder(
+        drop = 'if_binary',
+        sparse_output = False,
+        handle_unknown = "ignore"
+        )
+
+    X_train.gender = pd.DataFrame(
+        ohe.fit_transform(X_train_cat),
+        columns = ohe.get_feature_names_out()
+        )
+
+    X_test.gender = pd.DataFrame(
+        ohe.transform(X_test_cat),
+        columns = ohe.get_feature_names_out()
+        )
+
+    return X_train, X_test
 
 
-
-
-def scaler_target(y_train, y_test):
+def scale_target(y):
     """
     This function applies the StandardScaler method to center and scale the numerical data of the target variable y_train and y_test, and returns a new DataFrame with the transformed data.
 
@@ -51,12 +88,30 @@ def scaler_target(y_train, y_test):
     Returns:
     pandas.DataFrame: A new DataFrame with the centered and scaled numerical data.
     """
-    df_y_train = pd.DataFrame(y_train).reset_index().drop(columns='index')
-    df_y_test = pd.DataFrame(y_test).reset_index().drop(columns='index')
+    df_y = pd.DataFrame(y).reset_index().drop(columns='index')
 
     # Application de la méthode StandardScaler aux variables numériques
     scaler = StandardScaler()
-    y_train_scaller = pd.DataFrame(scaler.fit_transform(df_y_train),columns=['time'])
-    y_test_scaller = pd.DataFrame(scaler.transform(df_y_test),columns=['time'])
+    y_scaled = pd.DataFrame(scaler.fit_transform(df_y),columns=['time'])
 
-    return y_train_scaller, y_test_scaller
+    return y_scaled
+
+
+if __name__ == '__main__' :
+    dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
+    X_train_feat = engineer_features(X_train_raw)
+    X_test_feat = engineer_features(X_test_raw)
+    X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    #X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+
+    X_train_scaled, X_test_scaled = scale_features(X_train=X_train_balanced, X_test=X_test_feat)
+    X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled)
+
+    #print(X_train_balanced_scaled_encoded.shape)
+    #print(X_test_scaled_encoded.shape)
+    print(X_train_scaled.gender.isna().sum())
+    print(X_train_scaled_encoded.gender.isna().sum())
+    print(X_test_scaled.shape)
+    print(X_test_scaled.gender.isna().sum())
+    print(X_test_scaled_encoded.gender.isna().sum())
