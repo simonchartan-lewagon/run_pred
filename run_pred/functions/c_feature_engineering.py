@@ -1,20 +1,29 @@
 import numpy as np
 import pandas as pd
+from run_pred.functions.a_cleaning import clean_data
+from run_pred.functions.b_splitting import split_data
 
-def feature_engineering(run) :
+def engineer_features(run) :
+
+    """
+    This function takes a clean dataset
+    """
 
     #convert timestamp into datetime
     run.timestamp = pd.to_datetime(run.timestamp)
 
-    #add new rows of engineered features
-    run['pace'] = pace(run['distance'], run['time'], run['elevation_gain'])
-    run['average_speed'] = (run['distance']/run['time'])*3.6
+    #add engineered features
+    #run['pace'] = pace(run['distance'], run['time'], run['elevation_gain'])
+    #run['average_speed'] = (run['distance']/run['time'])*3.6
     run['elevation_gain_per_km'] = run['elevation_gain']/(run['distance']/1000)
     run['sin_day'], run['cos_day'] = weekday(run['timestamp'])
     run['sin_month'], run['cos_month'] = month(run['timestamp'])
-    run['AM'], run['PM'] = hour_1(run['timestamp'])
-    run['dawn'], run['morning'], run['noon'], run['afternoon'], run['evening'] = hour_2(run['timestamp'])
-    run['winter'], run['spring'], run['summer'], run['autumn'] = season(run['timestamp'])
+    run['day_am'], run['day_pm'] = hour_1(run['timestamp'])
+    run['day_dawn'], run['day_morning'], run['day_noon'], run['day_afternoon'], run['day_evening'] = hour_2(run['timestamp'])
+    run['season_winter'], run['season_spring'], run['season_summer'], run['season_autumn'] = season(run['timestamp'])
+
+    #drop the timestamp column
+    run = run.drop(columns = ['timestamp'])
 
     return run
 
@@ -28,6 +37,7 @@ def pace(distance, time, elevation_gain):
     return round(pace, 2)
 
 # creating a cyclical feature for weekdays
+
 def weekday(timestamp):
     #creating rows Monday -> Saturday
     weekday = timestamp.dt.day_name()
@@ -104,3 +114,13 @@ def season(timestamp):
     autumn = (month>9) *1
 
     return winter, spring, summer, autumn
+
+
+
+
+if __name__ == '__main__' :
+    dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
+    X_train_feat = engineer_features(X_train_raw)
+    print(X_train_feat.shape)
+    print(X_train_feat.head())

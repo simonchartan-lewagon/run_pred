@@ -6,20 +6,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 from run_pred.functions.a_cleaning import clean_data
+from run_pred.functions.b_splitting import split_data
+from run_pred.functions.c_feature_engineering import engineer_features
 
 
-def split_dataset(run, test_size = 0.2):
-    """
-    This function creates raw train/test splits in the previously cleaned dataset.
-    """
-    X = run.drop(columns = ['time'])
-    y = run.time
-
-    X_train_raw, X_test, y_train_raw, y_test = train_test_split(X, y, test_size=test_size)
-    return X_train_raw, X_test, y_train_raw, y_test
-
-
-def balance_data(X_train_raw, y_train_raw):
+def balance_data(X_train_feat, y_train):
     """
     This function uses the oversampling technique to balance each class of the gender variable.
     It takes as an input the training features dataset and the training target dataset and returns
@@ -31,17 +22,15 @@ def balance_data(X_train_raw, y_train_raw):
     """
 
     # Creating the training table from the input parameters
-    train = X_train_raw
-    train['time'] = y_train_raw
+    train = X_train_feat
+    train['time'] = y_train
 
     # Defining oversampling features and target variable
     X_bal = train.drop('gender', axis=1)
     y_bal = train['gender']
 
-    breakpoint()
-
     # Executing the oversampling
-    ros = RandomOverSampler()
+    ros = RandomOverSampler(random_state=1)
     X_resampled, y_resampled = ros.fit_resample(X_bal, y_bal)
 
     # Creating X_resampled et y_resampled
@@ -49,19 +38,16 @@ def balance_data(X_train_raw, y_train_raw):
     dfb_train['gender']= y_resampled
 
     # Redefining the training features dataset and target dataset, both balanced
-    X_train_balanced = dfb_train.drop('time', axis=1)
-    y_train_balanced = dfb_train['time']
+    X_train_balanced = dfb_train.drop('time', axis=1).reset_index(drop=True)
+    y_train_balanced = dfb_train['time'].reset_index(drop=True)
 
     return X_train_balanced, y_train_balanced
 
 
 if __name__ == '__main__' :
-    df = clean_data('raw_data/raw-data-kaggle.csv')
-    X_train_raw, X_test, y_train_raw, y_test = split_dataset(df)
-    print(X_train_raw.shape)
-    print(X_train_raw.head())
-    #X_train_balanced, y_train_balanced = balance_data(X_train_raw=X_train_raw, y_train_raw=y_train_raw)
-    #print(X_train_balanced.shape)
-    #print(X_train_balanced.head())
-    #print(y_train_balanced.shape)
-    #print(y_train_balanced.head())
+    dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    X_train_raw, X_test, y_train, y_test = split_data(dataset)
+    X_train_feat = engineer_features(X_train_raw)
+    X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    print(X_train_balanced.shape)
+    print(y_train_balanced.shape)
