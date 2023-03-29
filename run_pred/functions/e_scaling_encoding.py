@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, On
 from run_pred.functions.a_cleaning import clean_data
 from run_pred.functions.b_splitting import split_data
 from run_pred.functions.c_feature_engineering import engineer_features
-from run_pred.functions.b_balancing import balance_data
+from run_pred.functions.d_balancing import balance_data
 
 
 def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
