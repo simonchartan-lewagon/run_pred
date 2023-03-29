@@ -178,8 +178,6 @@ def heart_rate_category(run):
 
     return run
 
-
-
 def categorize_heart_rate_by_user_max(run):
     """
     Categorizes average heart rates for a given run dataframe by comparing them to the maximum heart rate
@@ -216,4 +214,3 @@ if __name__ == '__main__' :
     X_train_feat = engineer_features(X_train_raw)
     print(X_train_feat.shape)
     print(X_train_feat.head())
-
