@@ -38,8 +38,8 @@ def balance_data(X_train_feat, y_train):
     dfb_train['gender']= y_resampled
 
     # Redefining the training features dataset and target dataset, both balanced
-    X_train_balanced = dfb_train.drop('time', axis=1).reset_index(drop=True)
-    y_train_balanced = dfb_train['time'].reset_index(drop=True)
+    X_train_balanced = dfb_train.drop('time', axis=1)
+    y_train_balanced = dfb_train['time']
 
     return X_train_balanced, y_train_balanced
 

@@ -29,13 +29,12 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
     """
 
 	# Numerical vs other variables
-    numeric = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
-    X_train_incl_num = X_train.select_dtypes(include=numeric)
-    X_test_incl_num = X_test.select_dtypes(include=numeric)
+    X_train_incl_num = X_train.select_dtypes(include='float').reset_index(drop=True)
+    X_test_incl_num = X_test.select_dtypes(include='float').reset_index(drop=True)
 
-    X_train_excl_num = X_train.select_dtypes(exclude=numeric)
-    X_test_excl_num = X_test.select_dtypes(exclude=numeric)
+    X_train_excl_num = X_train.select_dtypes(exclude='float').reset_index(drop=True)
+    X_test_excl_num = X_test.select_dtypes(exclude='float').reset_index(drop=True)
 
 	# Applying the chosen scaling method
     scaler = scaler
@@ -43,11 +42,9 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
     X_test_num_scaled = pd.DataFrame(scaler.transform(X_test_incl_num),columns= X_test_incl_num.columns)
 
     # Concaténation des variables numériques et non numériques
-    X_train_scaled = X_train_excl_num.join(X_train_num_scaled, on = X_train_excl_num.index)
-    X_test_scaled = X_test_excl_num.join(X_test_num_scaled, on = X_test_excl_num.index)
 
-    #X_train_scaled = pd.concat([X_train_excl_num, X_train_num_scaled],axis=1)
-    #X_test_scaled =  pd.concat([X_test_excl_num, X_test_num_scaled],axis=1)
+    X_train_scaled = pd.concat([X_train_num_scaled, X_train_excl_num],axis=1)
+    X_test_scaled =  pd.concat([X_test_num_scaled, X_test_excl_num],axis=1)
 
     return X_train_scaled, X_test_scaled
 
@@ -113,5 +110,6 @@ if __name__ == '__main__' :
     print(X_train_scaled.gender.isna().sum())
     print(X_train_scaled_encoded.gender.isna().sum())
     print(X_test_scaled.shape)
+    print(X_test_feat.shape)
     print(X_test_scaled.gender.isna().sum())
     print(X_test_scaled_encoded.gender.isna().sum())
