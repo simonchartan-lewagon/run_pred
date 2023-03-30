@@ -10,6 +10,7 @@ from run_pred.functions.d_balancing import balance_data
 
 def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
 
+    X_test = pd.DataFrame(X_test,columns = X_train.columns)
     X_train_scaled, X_test_scaled = scale_features(X_train=X_train, X_test=X_test, scaler = scaler)
     X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled)
 
