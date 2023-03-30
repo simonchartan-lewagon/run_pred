@@ -48,10 +48,11 @@ if __name__ == '__main__' :
 
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
-    X_train_feat = engineer_features(X_train_raw)
+    X_train_feat = engineer_features(X_train_raw, y_train_raw)
     X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train_raw)
 
     print(X_train_balanced.shape)
     print(X_test.shape)
     print(y_train_balanced.shape)
     print(y_test.shape)
+    print(X_train_balanced.info())
