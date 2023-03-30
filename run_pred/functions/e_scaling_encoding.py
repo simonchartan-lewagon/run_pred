@@ -28,14 +28,14 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
     (pandas.DataFrame, pandas.DataFrame): A tuple of two DataFrames containing the scaled training and test datasets, respectively, with the numerical variables scaled
     """
 
-	# Numerical vs other variables
-    numeric = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+	# Float vs other variables --> Float variables are the only ones to scale,
+    # others are variables that are either pre-encoded or to encode
 
-    X_train_incl_num = X_train.select_dtypes(include=numeric)
-    X_test_incl_num = X_test.select_dtypes(include=numeric)
+    X_train_incl_num = X_train.select_dtypes(include='float')
+    X_test_incl_num = X_test.select_dtypes(include='float')
 
-    X_train_excl_num = X_train.select_dtypes(exclude=numeric)
-    X_test_excl_num = X_test.select_dtypes(exclude=numeric)
+    X_train_excl_num = X_train.select_dtypes(exclude='float')
+    X_test_excl_num = X_test.select_dtypes(exclude='float')
 
 	# Applying the chosen scaling method
     scaler = scaler
@@ -103,15 +103,10 @@ if __name__ == '__main__' :
     X_train_feat = engineer_features(X_train_raw)
     X_test_feat = engineer_features(X_test_raw)
     X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
-    #X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+    X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
 
-    X_train_scaled, X_test_scaled = scale_features(X_train=X_train_balanced, X_test=X_test_feat)
-    X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled)
+    print(X_train_balanced_scaled_encoded.shape)
+    print(X_test_scaled_encoded.shape)
 
-    #print(X_train_balanced_scaled_encoded.shape)
-    #print(X_test_scaled_encoded.shape)
-    print(X_train_scaled.gender.isna().sum())
-    print(X_train_scaled_encoded.gender.isna().sum())
-    print(X_test_scaled.shape)
-    print(X_test_scaled.gender.isna().sum())
+    print(X_train_balanced_scaled_encoded.gender.isna().sum())
     print(X_test_scaled_encoded.gender.isna().sum())
