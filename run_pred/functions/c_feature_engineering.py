@@ -22,6 +22,11 @@ def engineer_features(run) :
     run['day_dawn'], run['day_morning'], run['day_noon'], run['day_afternoon'], run['day_evening'] = hour_2(run['timestamp'])
     run['season_winter'], run['season_spring'], run['season_summer'], run['season_autumn'] = season(run['timestamp'])
 
+    run = race_category(run)
+    run = elevation_category(run)
+    run = heart_rate_category(run)
+    #run = categorize_heart_rate_by_user_max(run)
+
     #drop the timestamp column
     run = run.drop(columns = ['timestamp'])
 
