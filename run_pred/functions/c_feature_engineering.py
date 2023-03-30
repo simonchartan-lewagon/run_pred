@@ -3,34 +3,34 @@ import pandas as pd
 from run_pred.functions.a_cleaning import clean_data
 from run_pred.functions.b_splitting import split_data
 
-def engineer_features(run) :
+def engineer_features(run_features,run_target) :
 
     """
     This function takes a clean dataset
     """
 
     #convert timestamp into datetime
-    run.timestamp = pd.to_datetime(run.timestamp)
+    run_features.timestamp = pd.to_datetime(run_features.timestamp)
 
     #add engineered features
-    #run['pace'] = pace(run['distance'], run['time'], run['elevation_gain'])
-    #run['average_speed'] = (run['distance']/run['time'])*3.6
-    run['elevation_gain_per_km'] = run['elevation_gain']/(run['distance']/1000)
-    run['sin_day'], run['cos_day'] = weekday(run['timestamp'])
-    run['sin_month'], run['cos_month'] = month(run['timestamp'])
-    run['day_am'], run['day_pm'] = hour_1(run['timestamp'])
-    run['day_dawn'], run['day_morning'], run['day_noon'], run['day_afternoon'], run['day_evening'] = hour_2(run['timestamp'])
-    run['season_winter'], run['season_spring'], run['season_summer'], run['season_autumn'] = season(run['timestamp'])
+    #run_features['pace'] = pace(run_features['distance'], run_features['time'], run_features['elevation_gain'])
+    #run_features['average_speed'] = (run_features['distance']/run_features['time'])*3.6
+    run_features['elevation_gain_per_km'] = run_features['elevation_gain']/(run_features['distance']/1000)
+    run_features['sin_day'], run_features['cos_day'] = weekday(run_features['timestamp'])
+    run_features['sin_month'], run_features['cos_month'] = month(run_features['timestamp'])
+    run_features['day_am'], run_features['day_pm'] = hour_1(run_features['timestamp'])
+    run_features['day_dawn'], run_features['day_morning'], run_features['day_noon'], run_features['day_afternoon'], run_features['day_evening'] = hour_2(run_features['timestamp'])
+    run_features['season_winter'], run_features['season_spring'], run_features['season_summer'], run_features['season_autumn'] = season(run_features['timestamp'])
 
-    run = race_category(run)
-    run = elevation_category(run)
-    run = heart_rate_category(run)
-    #run = categorize_heart_rate_by_user_max(run)
+    run_features = race_category(run_features,run_target)
+    run_features = elevation_category(run_features)
+    run_features = heart_rate_category(run_features)
+    run_features = categorize_heart_rate_by_user_max(run_features)
 
     #drop the timestamp column
-    run = run.drop(columns = ['timestamp'])
+    run_features = run_features.drop(columns = ['timestamp'])
 
-    return run
+    return run_features
 
 
 # creating a corriged pace function  (distance + elevation_gain):
@@ -113,7 +113,7 @@ def season(timestamp):
     month = timestamp.dt.month
 
     #création des colonnes dawn/morning/noon/afternoon/evening
-    winter = (month<= 3 )*1
+    winter = (month<= 3)*1
     spring = ((month>3) & (month <= 6 ))*1
     summer = ((month>6) & (month <=9 ))*1
     autumn = (month>9) *1
@@ -121,21 +121,23 @@ def season(timestamp):
     return winter, spring, summer, autumn
 
 
-def race_category(run):
+def race_category(run_features,run_target):
     """
     Computes the race category of a running activity based on a combination of the distance covered, elevation gain,
     time spent running, and average heart rate. The resulting race category is assigned to the input DataFrame `run`
     as three binary columns: `race_category_1`, `race_category_2`, and `race_category_3`.
     """
-    run['new_metric'] = ((run['distance']+(run['elevation_gain']*10))/(run['time']*run['average_heart_rate']))*100
+    run_features['race_category_metric'] = ((run_features['distance']+(run_features['elevation_gain']*10))/(run_target*run_features['average_heart_rate']))*100
 
-    interval = [run.new_metric.mean()-(run.new_metric.std()/2), run.new_metric.mean()+(run.new_metric.std()/2)]
+    interval = [run_features.race_category_metric.mean()-(run_features.race_category_metric.std()/2), run_features.race_category_metric.mean()+(run_features.race_category_metric.std()/2)]
 
-    run['race_category_1'] = (run.new_metric < interval[0])*1
-    run['race_category_2'] = ((run.new_metric > interval[0]) & (run.new_metric < interval[1]))*1
-    run['race_category_3'] = (run.new_metric > interval[1])*1
+    run_features['race_category_1'] = (run_features.race_category_metric < interval[0])*1
+    run_features['race_category_2'] = ((run_features.race_category_metric >= interval[0]) & (run_features.race_category_metric < interval[1]))*1
+    run_features['race_category_3'] = (run_features.race_category_metric >= interval[1])*1
 
-    return run
+    run_features = run_features.drop(columns = ['race_category_metric'])
+
+    return run_features
 
 def elevation_category(run):
     """
@@ -145,15 +147,17 @@ def elevation_category(run):
     elevation_category_1: runs with no elevation or a small elevation (=rolling elevation). (<9.5 m/km)
     elevation_category_2: runs with a moderate/steep elevation. (9.5-29 m/km)
     elevation_category_3: runs with a very steep elevation. (29-48 m/km)
-    elevation_category_4: runs with a mountainous elevation. (>48 m/km)
+    elevation_category_4: runs with an even higher elevation. (>48 m/km)
     """
 
     run['elevation_m_per_km'] = (run['elevation_gain'])/(run['distance']/1000)
 
     run['elevation_category_1'] = (run.elevation_m_per_km < 9.5)*1
-    run['elevation_category_2'] = ((run.elevation_m_per_km < 29 )&(run.elevation_m_per_km <= 9.5))*1
-    run['elevation_category_3'] = ((run.elevation_m_per_km < 48 )&(run.elevation_m_per_km <= 29))*1
-    run['elevation_category_4'] = (run.elevation_m_per_km > 48)*1
+    run['elevation_category_2'] = ((run.elevation_m_per_km >= 9.5) & (run.elevation_m_per_km < 29))*1
+    run['elevation_category_3'] = ((run.elevation_m_per_km >= 29) & (run.elevation_m_per_km < 48 ))*1
+    run['elevation_category_4'] = (run.elevation_m_per_km >= 48)*1
+
+    run = run.drop(columns = ['elevation_m_per_km'])
 
     return run
 
@@ -173,13 +177,13 @@ def heart_rate_category(run):
 
 
     """
-    #création d'un intervalle
+    # Creating the medium interval
     interval = [run.average_heart_rate.mean()-(run.average_heart_rate.std()/2), run.average_heart_rate.mean()+(run.average_heart_rate.std()/2)]
 
-    #catégorison selon cet intervalle
+    # Categorizing based on this interval
     run['heart_rate_category_1'] = (run['average_heart_rate'] < interval[0])*1
-    run['heart_rate_category_2'] = ((run['average_heart_rate'] > interval[0]) & (run['average_heart_rate'] < interval[1]))*1
-    run['heart_rate_category_3'] = (run['average_heart_rate'] > interval[1])*1
+    run['heart_rate_category_2'] = ((run['average_heart_rate'] >= interval[0]) & (run['average_heart_rate'] < interval[1]))*1
+    run['heart_rate_category_3'] = (run['average_heart_rate'] >= interval[1])*1
 
     return run
 
@@ -200,22 +204,30 @@ def categorize_heart_rate_by_user_max(run):
         above 85% of their maximum heart rate, respectively.
     """
 
-    # grouper les données par identifiant de coureur et trouver la valeur maximale de la colonne "average_heart_rate"
+    # Group data by athlete_id and find the maximum average_heart_rate
     max_heart_rates = run.groupby('athlete_id')['average_heart_rate'].max()
+    run['max_average_heart_rate'] = run['athlete_id'].map(max_heart_rates)
 
-    # créer une nouvelle colonne avec la fréquence cardiaque maximale associée à chaque identifiant de coureur
-    run['max_heart_rate'] = run['athlete_id'].map(max_heart_rates)
+    thresh_1 = 0.80
+    thresh_2 = 0.85
 
-    # Catégorisé les fréquence cardiaque moyenne par rapport à la  fréquence cardiaque moyenne max de l'utilisateur
-    run['heart_rate_low'] = (run['average_heart_rate'] < run.max_heart_rate*0.75)*1
-    run['heart_rate_medium'] = ((run['average_heart_rate'] > run.max_heart_rate*0.75) & (run['average_heart_rate'] < run.max_heart_rate*0.85))*1
-    run['heart_rate_hight'] = (run['average_heart_rate'] >  run.max_heart_rate*0.85)*1
+    # Categorize the rows based on where the average_heart_rate lies compared to the athlete maximum average_heart_rate
+    run['heart_rate_low'] = (run['average_heart_rate'] < run.max_average_heart_rate*thresh_1)*1
+    run['heart_rate_medium'] = ((run['average_heart_rate'] >= run.max_average_heart_rate*thresh_1) & (run['average_heart_rate'] < run.max_average_heart_rate*thresh_2))*1
+    run['heart_rate_hight'] = (run['average_heart_rate'] >= run.max_average_heart_rate*thresh_2)*1
+
+    run = run.drop(columns = ['athlete_id','max_average_heart_rate'])
 
     return run
 
 if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
-    X_train_feat = engineer_features(X_train_raw)
+    X_train_feat = engineer_features(X_train_raw,y_train_raw)
+    X_test_feat = engineer_features(X_test,y_test)
     print(X_train_feat.shape)
     print(X_train_feat.head())
+    print(X_train_feat.columns)
+    print(X_test_feat.shape)
+    print(X_test_feat.head())
+    print(X_test_feat.columns)
