@@ -30,7 +30,12 @@ if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
 
-    for data in [X_train_raw, X_test, y_train_raw, y_test]:
+    for data in [
+        X_train_raw,
+        X_test,
+        y_train_raw,
+        y_test
+        ]:
         assert(data.shape[0] == data.index.max()+1)
 
     print(X_train_raw.shape)

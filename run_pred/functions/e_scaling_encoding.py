@@ -32,11 +32,11 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
 	# Float vs other variables --> Float variables are the only ones to scale,
     # others are variables that are either pre-encoded or to encode
 
-    X_train_incl_num = X_train.select_dtypes(include='float')
-    X_test_incl_num = X_test.select_dtypes(include='float')
+    X_train_incl_num = X_train[['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km']]
+    X_test_incl_num = X_test[['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km']]
 
-    X_train_excl_num = X_train.select_dtypes(exclude='float')
-    X_test_excl_num = X_test.select_dtypes(exclude='float')
+    X_train_excl_num = X_train.drop(columns = ['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km'])
+    X_test_excl_num = X_test.drop(columns = ['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km'])
 
 	# Applying the chosen scaling method
     scaler = scaler
@@ -46,9 +46,6 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
     # Concaténation des variables numériques et non numériques
     X_train_scaled = X_train_excl_num.join(X_train_num_scaled, on = X_train_excl_num.index)
     X_test_scaled = X_test_excl_num.join(X_test_num_scaled, on = X_test_excl_num.index)
-
-    #X_train_scaled = pd.concat([X_train_excl_num, X_train_num_scaled],axis=1)
-    #X_test_scaled =  pd.concat([X_test_excl_num, X_test_num_scaled],axis=1)
 
     return X_train_scaled, X_test_scaled
 
@@ -78,7 +75,7 @@ def encode_features(X_train, X_test):
     return X_train, X_test
 
 
-def scale_target(y):
+def scale_target(y_train,y_test):
     """
     This function applies the StandardScaler method to center and scale the numerical data of the target variable y_train and y_test, and returns a new DataFrame with the transformed data.
 
@@ -89,13 +86,15 @@ def scale_target(y):
     Returns:
     pandas.DataFrame: A new DataFrame with the centered and scaled numerical data.
     """
-    df_y = pd.DataFrame(y).reset_index().drop(columns='index')
+    df_y_train = pd.DataFrame(y_train)
+    df_y_test = pd.DataFrame(y_test)
 
     # Application de la méthode StandardScaler aux variables numériques
     scaler = StandardScaler()
-    y_scaled = pd.DataFrame(scaler.fit_transform(df_y),columns=['time'])
+    y_train_scaled = pd.DataFrame(scaler.fit_transform(df_y_train),columns=['time'])
+    y_test_scaled = pd.DataFrame(scaler.transform(df_y_test),columns=['time'])
 
-    return y_scaled
+    return y_train_scaled, y_test_scaled
 
 
 if __name__ == '__main__' :
@@ -114,3 +113,4 @@ if __name__ == '__main__' :
     print(X_train_balanced_scaled_encoded.gender.isna().sum())
     print(X_test_scaled_encoded.gender.isna().sum())
     print(X_train_balanced_scaled_encoded.info())
+    print(X_test_scaled_encoded.info())

@@ -6,7 +6,8 @@ from run_pred.functions.b_splitting import split_data
 def engineer_features(run_features,run_target) :
 
     """
-    This function takes a clean dataset
+    This function takes a clean dataset and creates
+    all relevant feature meant to add predictive power to the model.
     """
 
     #convert timestamp into datetime
@@ -24,8 +25,10 @@ def engineer_features(run_features,run_target) :
 
     run_features = race_category(run_features,run_target)
     run_features = elevation_category(run_features)
-    run_features = heart_rate_category(run_features)
-    run_features = categorize_heart_rate_by_user_max(run_features)
+
+    # The 2 functions below are not executed as it does not add predictive power to the model.
+    #run_features = heart_rate_category(run_features)
+    #run_features = categorize_heart_rate_by_user_max(run_features)
 
     #drop the timestamp column
     run_features = run_features.drop(columns = ['timestamp'])
@@ -33,21 +36,20 @@ def engineer_features(run_features,run_target) :
     return run_features
 
 
-# creating a corriged pace function  (distance + elevation_gain):
+# creating a corrected pace function  (distance + elevation_gain):
 def pace(distance, time, elevation_gain):
 
-    adapted_distance = distance/1000 + ((elevation_gain//10)*0.1)
+    adapted_distance = distance/1000 + ((elevation_gain/10)*0.1)
     pace = (time/60)/(adapted_distance)
 
     return round(pace, 2)
 
 # creating a cyclical feature for weekdays
-
 def weekday(timestamp):
-    #creating rows Monday -> Saturday
+    # creating rows Monday -> Saturday
     weekday = timestamp.dt.day_name()
 
-    #weekday dictionary
+    # weekday dictionary
     dict = {'Monday' : 1,
             'Tuesday' : 2,
             'Wednesday' : 3,
@@ -56,7 +58,7 @@ def weekday(timestamp):
             'Saturday': 6,
             'Sunday' : 7}
 
-    #modify day into number
+    # modify day into number
     weekday = weekday.map(dict)
 
 
@@ -71,7 +73,7 @@ def weekday(timestamp):
 
 # creating a cyclical feature for months
 def month(timestamp):
-    #creating row 'month'
+    # creating row 'month'
     month = timestamp.dt.month
 
     # Treat Cyclical Features
@@ -84,10 +86,10 @@ def month(timestamp):
 
 # creating a AM/PM split for hours
 def hour_1(timestamp):
-    #crating row 'hour'
+    # creating row 'hour'
     hour = timestamp.dt.hour
 
-    #creating rows 'AM' & 'PM'
+    # creating rows 'AM' & 'PM'
     hour_am = (hour<=12)*1
     hour_pm = (hour>12)*1
 
@@ -96,23 +98,23 @@ def hour_1(timestamp):
 
 # creating a dawn/morning/noon/afternoon/evening split for hours
 def hour_2(timestamp):
-    #crating row 'hour'
+    # creating row 'hour'
     hour = timestamp.dt.hour
 
-    #création des colonnes dawn/morning/noon/afternoon/evening
-    dawn = (hour<=8)*1
-    morning = ((hour>8) & (hour <=11 ))*1
-    noon = ((hour>11) & (hour <=14 ))*1
-    afternoon = ((hour>14) & (hour <=17 ))*1
-    evening = (hour>17)*1
+    # creating columns
+    dawn = (hour<=7)*1
+    morning = ((hour>7) & (hour <=10 ))*1
+    noon = ((hour>10) & (hour <=13 ))*1
+    afternoon = ((hour>13) & (hour <=16))*1
+    evening = (hour>16)*1
 
     return dawn, morning, noon, afternoon, evening
 
 def season(timestamp):
-    #crating row 'hour'
+    # creating row 'hour'
     month = timestamp.dt.month
 
-    #création des colonnes dawn/morning/noon/afternoon/evening
+    # creating columns
     winter = (month<= 3)*1
     spring = ((month>3) & (month <= 6 ))*1
     summer = ((month>6) & (month <=9 ))*1
@@ -154,8 +156,9 @@ def elevation_category(run):
 
     run['elevation_category_1'] = (run.elevation_m_per_km < 9.5)*1
     run['elevation_category_2'] = ((run.elevation_m_per_km >= 9.5) & (run.elevation_m_per_km < 29))*1
-    run['elevation_category_3'] = ((run.elevation_m_per_km >= 29) & (run.elevation_m_per_km < 48 ))*1
-    run['elevation_category_4'] = (run.elevation_m_per_km >= 48)*1
+    run['elevation_category_3'] = (run.elevation_m_per_km >= 29) *1
+    #& (run.elevation_m_per_km < 48 ))*1
+    #run['elevation_category_4'] = (run.elevation_m_per_km >= 48)*1
 
     run = run.drop(columns = ['elevation_m_per_km'])
 
