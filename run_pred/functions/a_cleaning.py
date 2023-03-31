@@ -113,7 +113,6 @@ def clean_data(path):
     # Finally, reindexing the dataset and re-formatting
     run = run.reset_index(drop = True)
     run = run[[
-        'athlete_id',
         'time',
         'distance',
         'elevation_gain',
@@ -129,4 +128,4 @@ if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     print(dataset.shape)
     print(dataset.head())
-    assert(dataset.shape == (22023,7))
+    assert(dataset.shape == (22023,6))
