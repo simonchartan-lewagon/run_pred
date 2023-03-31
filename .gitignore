@@ -1,6 +1,7 @@
-raw_data/
+models/
 notebooks/
-.python-version
-.ipynb_checkpoints/
+raw_data/
 run_pred.egg-info/
 __pycache__/
+.ipynb_checkpoints/
+.python-version

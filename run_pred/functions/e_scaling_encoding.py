@@ -1,4 +1,3 @@
-# Importation des librairies nécessaires
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OneHotEncoder
