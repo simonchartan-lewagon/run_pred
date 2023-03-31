@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def clean_data(path):
     """
@@ -93,6 +94,22 @@ def clean_data(path):
     run['pseudo_pace'] = (run.time/60) / (run.pseudo_distance/1000) # min/km
     run = run[((run.pseudo_pace >= 2.5) & (run.pseudo_pace <= 15))]
 
+    ## speed
+    ### --> Removing potential remaining outliers based on world records speed
+    ### The model used below to calculate the maximum speeds is based on an interpolation
+    ### of 2 km, 3 km, 5 km, 10 km, Semi Marathon, and Marathon world records. It has an
+    ### R² of 98.8% with the real world records values.
+
+    coef = 0.9
+
+    run['speed'] = (run.distance/1000) / (run.time/3600)
+    run['max_speed'] = (-1.38745 * np.log(run.distance) + 35.6235859)*coef
+    run = run[run.speed < run.max_speed]
+
+    run['pseudo_speed'] = ((run.distance + 10*run.elevation_gain)/1000) / (run.time/3600)
+    run['max_pseudo_speed'] = (-1.38745 * np.log(run.distance + 10*run.elevation_gain) + 35.6235859)*coef
+    run = run[run.pseudo_speed < run.max_pseudo_speed]
+
     # Finally, reindexing the dataset and re-formatting
     run = run.reset_index(drop = True)
     run = run[[
@@ -112,4 +129,4 @@ if __name__ == '__main__' :
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
     print(dataset.shape)
     print(dataset.head())
-    assert(dataset.shape == (22036,7))
+    assert(dataset.shape == (22023,7))
