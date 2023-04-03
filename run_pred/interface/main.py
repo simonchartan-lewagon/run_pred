@@ -23,8 +23,7 @@ def predict_race_times(X_pred_dict = test_dict):
     X_pred_feat = engineer_features(X_pred_raw)
 
     # scale the data
-    scaler_path = os.path.join(LOCAL_REGISTRY_PATH, "models", "StandardScaler.joblib")
-    scaler = joblib.load(scaler_path)
+    scaler = load_model(model = 'StandardScaler')
 
     X_pred_feat[['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km']] = pd.DataFrame(
         scaler.transform(X_pred_feat[['distance', 'elevation_gain', 'average_heart_rate' , 'elevation_gain_per_km']]),
@@ -33,8 +32,7 @@ def predict_race_times(X_pred_dict = test_dict):
     X_pred_feat_scaled = X_pred_feat
 
     # encode the data
-    ohe_path = os.path.join(LOCAL_REGISTRY_PATH, "models", "OneHotEncoder.joblib")
-    ohe = joblib.load(ohe_path)
+    ohe = load_model(model = 'OneHotEncoder')
 
     X_pred_feat_scaled.gender = pd.DataFrame(
         ohe.transform(X_pred_feat_scaled[['gender']]),
@@ -51,7 +49,7 @@ def predict_race_times(X_pred_dict = test_dict):
        'elevation_gain_per_km'])
 
     # load the model and predict
-    model = load_model()
+    model = load_model(model = 'StackingRegressor')
     results = model.predict(X_pred_feat_scaled_encoded)
 
     results_dict = {

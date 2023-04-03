@@ -6,3 +6,4 @@ os
 joblib
 imbalanced-learn
 scikit-learn
+google-cloud-storage
