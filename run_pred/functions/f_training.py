@@ -80,21 +80,21 @@ def load_model(model):
     model_path = os.path.join("models", f"{model}.joblib")
 
     if not os.path.isfile(model_path):
-        print('Downloading model from GCS')
+        print(f'Downloading {model} model from GCS...')
         # The ID of your GCS bucket
         bucket_name = "run_pred_model"
 
         # The ID of your GCS object
-        source_blob_name = f"{model}.joblib"
+        source_blob_name = model_path
 
         # The path to which the file should be downloaded
         destination_file_name = model_path
 
-        storage_client = storage.Client()
+        storage_client = storage.Client.from_service_account_json('gcs_credentials.json')
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(source_blob_name)
         blob.download_to_filename(destination_file_name)
-        print('Model downloaded from GCS')
+        print(f'{model} model downloaded from GCS')
 
     model = joblib.load(model_path)
     return model
@@ -110,6 +110,6 @@ if __name__ == '__main__' :
     #save_model(model)
     #model = load_model()
 
-    model = load_model('StackingRegressor')
+    model = load_model('StandardScaler')
     assert(model is not None)
     print(type(model))

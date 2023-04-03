@@ -58,7 +58,7 @@ def scale_features(X_train, X_test, scaler = StandardScaler(), save = False):
         model_name = type(scaler).__name__
 
         # save ohe locally
-        model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{model_name}.joblib")
+        model_path = os.path.join("models", f"{model_name}.joblib")
         joblib.dump(scaler, open(model_path, 'wb'))
         print('fitted scaler parameters saved locally')
 
@@ -93,7 +93,7 @@ def encode_features(X_train, X_test, save=False):
         model_name = type(ohe).__name__
 
         # save ohe locally
-        model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{model_name}.joblib")
+        model_path = os.path.join("models", f"{model_name}.joblib")
         joblib.dump(ohe, open(model_path, 'wb'))
         print('fitted ohe parameters saved locally')
 

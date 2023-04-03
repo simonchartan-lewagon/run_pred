@@ -72,10 +72,10 @@ def predict_race_times(X_pred_dict = test_dict):
 if __name__ == '__main__' :
 
     pred_dict = {
-        'distance': 10000,
-        'elevation_gain': 0,
+        'distance': 8000,
+        'elevation_gain': 100,
         'average_heart_rate': 150,
-        'timestamp': '2023-04-23 09:30:00',
+        'timestamp': '2023-04-03 19:30:00',
         'gender': 'M'
         }
 
