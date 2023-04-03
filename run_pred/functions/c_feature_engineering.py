@@ -3,7 +3,7 @@ import pandas as pd
 from run_pred.functions.a_cleaning import clean_data
 from run_pred.functions.b_splitting import split_data
 
-def engineer_features(run_features,run_target) :
+def engineer_features(run_features, run_target = None) :
 
     """
     This function takes a clean dataset and creates
@@ -23,7 +23,19 @@ def engineer_features(run_features,run_target) :
     run_features['day_dawn'], run_features['day_morning'], run_features['day_noon'], run_features['day_afternoon'], run_features['day_evening'] = hour_2(run_features['timestamp'])
     run_features['season_winter'], run_features['season_spring'], run_features['season_summer'], run_features['season_autumn'] = season(run_features['timestamp'])
 
-    run_features = race_category(run_features,run_target)
+    # modify behaviour depending on whether we are in prediction mode or train/test mode
+    if run_target is None: # we are in prediction mode, we build 3 rows, 1 for each race_category
+        add_tbl = pd.DataFrame({
+            'race_category_1' : [1,0,0],
+            'race_category_2' : [0,1,0],
+            'race_category_3' : [0,0,1]
+            })
+        run_features.loc[1] = run_features.loc[0]
+        run_features.loc[2] = run_features.loc[0]
+        run_features = run_features.join(add_tbl)
+    else: # we are in train/test mode
+        run_features = race_category(run_features,run_target)
+
     run_features = elevation_category(run_features)
 
     # The 2 functions below are not executed as it does not add predictive power to the model.
@@ -224,13 +236,27 @@ def categorize_heart_rate_by_user_max(run):
     return run
 
 if __name__ == '__main__' :
-    dataset = clean_data('raw_data/raw-data-kaggle.csv')
-    X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
-    X_train_feat = engineer_features(X_train_raw,y_train_raw)
-    X_test_feat = engineer_features(X_test,y_test)
-    print(X_train_feat.shape)
-    print(X_train_feat.head())
-    print(X_train_feat.columns)
-    print(X_test_feat.shape)
-    print(X_test_feat.head())
-    print(X_test_feat.columns)
+    # train/test mode
+    # dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    # X_train_raw, X_test, y_train_raw, y_test = split_data(dataset)
+    # X_train_feat = engineer_features(X_train_raw,y_train_raw)
+    # X_test_feat = engineer_features(X_test,y_test)
+    # print(X_train_feat.shape)
+    # print(X_train_feat.head())
+    # print(X_train_feat.columns)
+    # print(X_test_feat.shape)
+    # print(X_test_feat.head())
+    # print(X_test_feat.columns)
+
+    # prediction mode
+    X_pred_raw = pd.DataFrame({
+        'distance': 10000,
+        'elevation_gain': 200,
+        'average_heart_rate': 150,
+        'timestamp': '2023-04-01 10:00:00',
+        'gender': 'M'
+        }, index = [0])
+    X_pred_feat = engineer_features(X_pred_raw)
+    print(X_pred_feat.head())
+    print(X_pred_feat.shape)
+    print(X_pred_feat.columns)

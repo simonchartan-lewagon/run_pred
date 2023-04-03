@@ -67,7 +67,7 @@ def save_model(model):
 
 
 def load_model():
-    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", "RandomForestRegressor_20230331-172305.joblib")
+    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", "StackingRegressor_20230331-193816.joblib")
     model = joblib.load(model_path)
     return model
 

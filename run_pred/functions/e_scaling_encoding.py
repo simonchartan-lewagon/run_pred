@@ -1,10 +1,16 @@
 import pandas as pd
 import numpy as np
+import time
+import os
+import joblib
+
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OneHotEncoder
 from run_pred.functions.a_cleaning import clean_data
 from run_pred.functions.b_splitting import split_data
 from run_pred.functions.c_feature_engineering import engineer_features
 from run_pred.functions.d_balancing import balance_data
+
+from run_pred.params import *
 
 
 def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
@@ -16,7 +22,7 @@ def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
     return X_train_scaled_encoded, X_test_scaled_encoded
 
 
-def scale_features(X_train, X_test, scaler = StandardScaler()):
+def scale_features(X_train, X_test, scaler = StandardScaler(), save = False):
     """
     This function applies the variable scaling method to the numerical variables of a dataset. It returns both datasets with the numerical variables scaled.
 
@@ -46,9 +52,19 @@ def scale_features(X_train, X_test, scaler = StandardScaler()):
     X_train_scaled = X_train_excl_num.join(X_train_num_scaled, on = X_train_excl_num.index)
     X_test_scaled = X_test_excl_num.join(X_test_num_scaled, on = X_test_excl_num.index)
 
+    if save:
+        # Saves the fitted ohe parameters on hard drive at f"{LOCAL_REGISTRY_PATH}/models/{scaler_name}_{timestamp}.joblib"
+        print('scaler saving initiated')
+        model_name = type(scaler).__name__
+
+        # save ohe locally
+        model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{model_name}.joblib")
+        joblib.dump(scaler, open(model_path, 'wb'))
+        print('fitted scaler parameters saved locally')
+
     return X_train_scaled, X_test_scaled
 
-def encode_features(X_train, X_test):
+def encode_features(X_train, X_test, save=False):
 
     features_ohe = ['gender']
 
@@ -70,6 +86,16 @@ def encode_features(X_train, X_test):
         ohe.transform(X_test_cat),
         columns = ohe.get_feature_names_out()
         )
+
+    if save:
+        # Saves the fitted ohe parameters on hard drive at f"{LOCAL_REGISTRY_PATH}/models/{scaler_name}_{timestamp}.joblib"
+        print('ohe saving initiated')
+        model_name = type(ohe).__name__
+
+        # save ohe locally
+        model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{model_name}.joblib")
+        joblib.dump(ohe, open(model_path, 'wb'))
+        print('fitted ohe parameters saved locally')
 
     return X_train, X_test
 
