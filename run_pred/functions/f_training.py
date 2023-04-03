@@ -20,6 +20,8 @@ from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor, GradientB
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from xgboost import XGBRegressor
 
+from google.cloud import storage
+
 # Note: the best model has been searched and engineered into individual notebooks,
 # by each member of the team. Only the best model is train and stored here, see below.
 
@@ -55,29 +57,59 @@ def train_best_model(X_train, y_train, X_test, y_test):
 
 def save_model(model):
     """
-    Saves the model trained on hard drive at f"{LOCAL_REGISTRY_PATH}/models/{model_name}_{timestamp}.joblib"
+    Saves the model trained on hard drive at f"{models/{model_name}_{timestamp}.joblib"
     """
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     model_name = type(model).__name__
 
     # save model locally
-    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{model_name}_{timestamp}.joblib")
+    model_path = os.path.join("models", f"{model_name}_{timestamp}.joblib")
     joblib.dump(model, open(model_path, 'wb'))
 
 
-def load_model():
-    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", "StackingRegressor_20230331-193816.joblib")
+def load_model(model):
+    """
+    This function loads a given model, which can be one of these:
+        - StandardScaler
+        - OneHotEncoder
+        - StackingRegressor
+    """
+    if not os.path.isdir('models'): os.mkdir('models')
+
+    model_path = os.path.join("models", f"{model}.joblib")
+
+    if not os.path.isfile(model_path):
+        print(f'Downloading {model} model from GCS...')
+        # The ID of your GCS bucket
+        bucket_name = "run_pred_model"
+
+        # The ID of your GCS object
+        source_blob_name = model_path
+
+        # The path to which the file should be downloaded
+        destination_file_name = model_path
+
+        storage_client = storage.Client.from_service_account_json('gcs_credentials.json')
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(source_blob_name)
+        blob.download_to_filename(destination_file_name)
+        print(f'{model} model downloaded from GCS')
+
     model = joblib.load(model_path)
     return model
 
 if __name__ == '__main__' :
-    dataset = clean_data('raw_data/raw-data-kaggle.csv')
-    X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
-    X_train_feat = engineer_features(X_train_raw, y_train)
-    X_test_feat = engineer_features(X_test_raw, y_test)
-    X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
-    X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
-    model = train_best_model(X_train_balanced_scaled_encoded, y_train_balanced, X_test_scaled_encoded, y_test)
-    save_model(model)
+    #dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    #X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
+    #X_train_feat = engineer_features(X_train_raw, y_train)
+    #X_test_feat = engineer_features(X_test_raw, y_test)
+    #X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    #X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+    #model = train_best_model(X_train_balanced_scaled_encoded, y_train_balanced, X_test_scaled_encoded, y_test)
+    #save_model(model)
     #model = load_model()
+
+    model = load_model('StandardScaler')
+    assert(model is not None)
+    print(type(model))
