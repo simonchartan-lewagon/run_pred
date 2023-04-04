@@ -10,8 +10,6 @@ from run_pred.functions.b_splitting import split_data
 from run_pred.functions.c_feature_engineering import engineer_features
 from run_pred.functions.d_balancing import balance_data
 
-from run_pred.params import *
-
 
 def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
 

@@ -1,13 +1,9 @@
 pandas
 numpy
-time
-glob
-os
 joblib
 imbalanced-learn
 scikit-learn
+xgboost
 google-cloud-storage
-imblearn.over_sampling
 fastapi
 uvicorn
-requests

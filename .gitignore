@@ -6,3 +6,6 @@ __pycache__/
 .ipynb_checkpoints/
 .python-version
 gcs_credentials.json
+.env
+.env.yaml
+.envrc

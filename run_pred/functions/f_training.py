@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
 import time
-import glob
 import os
 import joblib
 
-from run_pred.params import *
 from run_pred.functions.a_cleaning import clean_data
 from run_pred.functions.b_splitting import split_data
 from run_pred.functions.c_feature_engineering import engineer_features
@@ -13,11 +11,8 @@ from run_pred.functions.d_balancing import balance_data
 from run_pred.functions.e_scaling_encoding import scale_encode_data
 
 from sklearn.metrics import mean_absolute_percentage_error
-from sklearn.linear_model import LinearRegression, Lasso, Ridge, ElasticNet, LogisticRegression
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor, GradientBoostingRegressor, StackingRegressor, VotingRegressor
-from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
 from xgboost import XGBRegressor
 
 from google.cloud import storage
@@ -100,16 +95,16 @@ def load_model(model):
     return model
 
 if __name__ == '__main__' :
-    #dataset = clean_data('raw_data/raw-data-kaggle.csv')
-    #X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
-    #X_train_feat = engineer_features(X_train_raw, y_train)
-    #X_test_feat = engineer_features(X_test_raw, y_test)
-    #X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
-    #X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+    dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
+    X_train_feat = engineer_features(X_train_raw, y_train)
+    X_test_feat = engineer_features(X_test_raw, y_test)
+    X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
     #model = train_best_model(X_train_balanced_scaled_encoded, y_train_balanced, X_test_scaled_encoded, y_test)
     #save_model(model)
     #model = load_model()
 
-    model = load_model('StandardScaler')
-    assert(model is not None)
-    print(type(model))
+    #model = load_model('StandardScaler')
+    #assert(model is not None)
+    #print(type(model))
