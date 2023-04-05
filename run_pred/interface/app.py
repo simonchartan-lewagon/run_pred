@@ -4,7 +4,13 @@ from run_pred.interface.main import predict_race_times
 api = FastAPI()
 
 @api.get('/')
-async def index():
+async def index() -> dict:
+    """
+    Returns a dictionary with a status message indicating that the function is working properly.
+
+    Returns:
+    - dict: A dictionary with a 'Statut' key and 'OK' value.
+    """
     return {'Statut': 'OK'}
 
 @api.get('/prediction')
@@ -13,7 +19,24 @@ async def predict(
     elevation_gain_m: int,
     average_heart_rate: int,
     timestamp: str,
-    gender: str):
+    gender: str) -> dict :
+
+    """
+    Predicts the race times for a given input and returns the results in a dictionary.
+
+    Args:
+    - distance_km (float): The distance of the race in kilometers.
+    - elevation_gain_m (int): The total elevation gain of the race in meters.
+    - average_heart_rate (int): The average heart rate of the participant during the race.
+    - timestamp (str): The timestamp of the race in the format 'YYYY-MM-DD HH:MM:SS'.
+    - gender (str): The gender of the participant ('Male' or 'Female').
+
+    Returns:
+    - dict: A dictionary with the predicted race times for each race category, in seconds.
+        - 'race_category_1_pred_time' : the predicted time for race category 1
+        - 'race_category_2_pred_time' : the predicted time for race category 2
+        - 'race_category_3_pred_time' : the predicted time for race category 3
+    """
 
     X_pred_dict = {
         'distance': distance_km * 1000,
