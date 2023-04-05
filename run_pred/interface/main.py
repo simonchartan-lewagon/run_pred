@@ -14,7 +14,16 @@ test_dict = {
     'gender': 'M'
 }
 
-def predict_race_times(X_pred_dict = test_dict):
+def predict_race_times(X_pred_dict: dict = test_dict) -> dict :
+    """
+    Predicts race times for given input data.
+
+    Args:
+    - X_pred_dict (dict): A dictionary containing input data for prediction. Default is `test_dict`.
+
+    Returns:
+    - results_dict_display (dict): A dictionary containing predicted race times for different categories of races.
+    """
 
     # transform the input data dictionary to a DataFrame
     X_pred_raw = pd.DataFrame(X_pred_dict, index = [0])
