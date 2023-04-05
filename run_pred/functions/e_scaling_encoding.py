@@ -11,7 +11,18 @@ from run_pred.functions.c_feature_engineering import engineer_features
 from run_pred.functions.d_balancing import balance_data
 
 
-def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
+def scale_encode_data(X_train: pd.DataFrame, X_test: pd.DataFrame, scaler: object = StandardScaler()) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Scale and encode data using a given scaler.
+
+    Args:
+    X_train (pd.DataFrame): The training dataset
+    X_test (pd.DataFrame): The testing dataset.
+    scaler (object, optional): The scaler to use to scale the data. Defaults to StandardScaler().
+
+    Returns:
+    tuple: A tuple containing the scaled and encoded training and testing datasets.
+    """
 
     X_test = pd.DataFrame(X_test,columns = X_train.columns)
     X_train_scaled, X_test_scaled = scale_features(X_train=X_train, X_test=X_test, scaler = scaler)
@@ -20,7 +31,7 @@ def scale_encode_data(X_train, X_test, scaler = StandardScaler()):
     return X_train_scaled_encoded, X_test_scaled_encoded
 
 
-def scale_features(X_train, X_test, scaler = StandardScaler(), save = False):
+def scale_features(X_train: pd.DataFrame, X_test: pd.DataFrame, scaler: object = StandardScaler(), save: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     This function applies the variable scaling method to the numerical variables of a dataset. It returns both datasets with the numerical variables scaled.
 
@@ -62,24 +73,40 @@ def scale_features(X_train, X_test, scaler = StandardScaler(), save = False):
 
     return X_train_scaled, X_test_scaled
 
-def encode_features(X_train, X_test, save=False):
+def encode_features(X_train: pd.DataFrame, X_test: pd.DataFrame, save: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Encode the gender feature using One-Hot-Encoding.
 
+    Args:
+    X_train (pd.DataFrame): training dataset.
+    X_test (pd.DataFrame): testing dataset.
+    save (bool, optional): Whether to save the fitted OneHotEncoder parameters on the hard drive. Defaults to False.
+
+    Returns:
+    tuple: A tuple of pd.DataFrame objects, with encoded categorical features. The first element is the encoded training dataset and the second is the encoded testing dataset.
+    '''
+
+    # Extract the column containing categorical features
     features_ohe = ['gender']
 
+    # Extract the categorical data from the training and testing dataset
     X_train_cat = X_train[features_ohe]
     X_test_cat = X_test[features_ohe]
 
+    # Initialize a OneHotEncoder object with parameters to handle binary variables and unknown values
     ohe = OneHotEncoder(
         drop = 'if_binary',
         sparse_output = False,
         handle_unknown = "ignore"
         )
 
+    # Transform the categorical data of the training dataset using the OneHotEncoder object
     X_train.gender = pd.DataFrame(
         ohe.fit_transform(X_train_cat),
         columns = ohe.get_feature_names_out()
         )
 
+    # Transform the categorical data of the testing dataset using the fitted OneHotEncoder object
     X_test.gender = pd.DataFrame(
         ohe.transform(X_test_cat),
         columns = ohe.get_feature_names_out()
@@ -97,27 +124,6 @@ def encode_features(X_train, X_test, save=False):
 
     return X_train, X_test
 
-
-def scale_target(y_train,y_test):
-    """
-    This function applies the StandardScaler method to center and scale the numerical data of the target variable y_train and y_test, and returns a new DataFrame with the transformed data.
-
-    Args:
-    y_train (pandas.DataFrame): The DataFrame containing the training data of the target variable.
-    y_test (pandas.DataFrame): The DataFrame containing the test data of the target variable.
-
-    Returns:
-    pandas.DataFrame: A new DataFrame with the centered and scaled numerical data.
-    """
-    df_y_train = pd.DataFrame(y_train)
-    df_y_test = pd.DataFrame(y_test)
-
-    # Application de la méthode StandardScaler aux variables numériques
-    scaler = StandardScaler()
-    y_train_scaled = pd.DataFrame(scaler.fit_transform(df_y_train),columns=['time'])
-    y_test_scaled = pd.DataFrame(scaler.transform(df_y_test),columns=['time'])
-
-    return y_train_scaled, y_test_scaled
 
 
 if __name__ == '__main__' :
