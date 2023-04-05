@@ -3,13 +3,20 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from run_pred.functions.a_cleaning import clean_data
 
-def split_data(run, test_size = 0.2):
+def split_data(
+    run: pd.DataFrame,
+    test_size: float = 0.2
+    ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame,pd.DataFrame]:
     """
-    This function creates raw train/test splits in the previously cleaned dataset.
+    This function creates raw train/test splits from the previously cleaned dataset,
+    ready to be feature-engineered.
     """
-    X = run.drop(columns = ['time'])
+
+    # Separating features from target
+    X = run.drop(columns=['time'])
     y = run.time
 
+    # Creating train/test splits
     X_train_raw, X_test, y_train_raw, y_test = train_test_split(
         X,
         y,
@@ -18,12 +25,13 @@ def split_data(run, test_size = 0.2):
         )
 
     # Resetting indexes to prevent conflicts further down the workflow
-    X_train_raw = X_train_raw.reset_index(drop = True)
-    X_test = X_test.reset_index(drop = True)
-    y_train_raw = y_train_raw.reset_index(drop = True)
-    y_test = y_test.reset_index(drop = True)
+    X_train_raw = X_train_raw.reset_index(drop=True)
+    X_test = X_test.reset_index(drop=True)
+    y_train_raw = y_train_raw.reset_index(drop=True)
+    y_test = y_test.reset_index(drop=True)
 
     return X_train_raw, X_test, y_train_raw, y_test
+
 
 if __name__ == '__main__' :
 
