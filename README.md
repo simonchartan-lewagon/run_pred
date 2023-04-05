@@ -90,7 +90,7 @@ elevation_gain_per_km
 
 Once the data is ready, we train our model which is a StackingRegressor composed of a RandomForest, GradientBoosting, XGB, and a LinearRegression as the final estimator.
 
-The model achieved a high accuracy score of 96.8% in R² and a low mean absolute percentage error (MAPE) of 5.4%. This indicates that the model can effectively predict race times based on the input features.
+The model achieved a high accuracy score of 96.9% in R² and a low mean absolute percentage error (MAPE) of 5.4%. This indicates that the model can effectively predict race times based on the input features.
 
 Overall, the project demonstrates the effectiveness of machine learning in predicting race times and showcases the importance of feature engineering and data cleaning in achieving accurate predictions.
 
