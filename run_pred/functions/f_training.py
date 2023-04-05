@@ -20,50 +20,77 @@ from google.cloud import storage
 # Note: the best model has been searched and engineered into individual notebooks,
 # by each member of the team. Only the best model is train and stored here, see below.
 
-def train_best_model(X_train, y_train, X_test, y_test):
+def train_best_model(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    X_test: pd.DataFrame,
+    y_test: pd.Series) -> object:
 
-    # Définir les paramètres pour chaque modèle de régression
+    """
+    Train a stacking regression model on the input training dataset `X_train` and `y_train`,
+    and evaluate its performance on the test dataset `X_test` and `y_test`.
+    The function defines the hyperparameters and models for three base regression models:
+    Random Forest Regressor, XGBoost Regressor, and Gradient Boosting Regressor.
+
+    It then trains a meta-regressor, which is a Linear Regression model,
+    using the predicted outputs of the three base models as its input.
+
+    Finally, it constructs a Stacking Regressor, which combines the three base models
+    and the meta-regressor, and trains it on the input training dataset.
+
+    Args:
+    - X_train (array-like): Training data features.
+    - y_train (array-like): Training data target.
+    - X_test (array-like): Test data features.
+    - y_test (array-like): Test data target.
+
+    Returns:
+    - model (object): Trained StackingRegressor model.
+    """
+
+    # Defining the parameters for each sub-model
     xgb_params = {'gamma': 0, 'learning_rate': 0.1, 'max_depth': 25, 'min_child_weight': 1, 'n_estimators': 1200}
     gb_params = {'loss': 'huber', 'max_depth': 15, 'max_features': 1.0, 'min_samples_split': 6, 'n_estimators': 500}
 
-    # Définir les modèles de régression
+    # Defining the models
     rf_model = RandomForestRegressor()
     xgb_model = XGBRegressor(**xgb_params)
     gb_model = GradientBoostingRegressor(**gb_params)
 
-    # Définir le modèle meta-régresseur
+    # Defining the meta-regressor
     meta_regressor = LinearRegression()
 
-    #memo cked_model = StackingRegressor(estimators=[('rf', rf_model), ('xgb', xgb_model), ('gb', gb_model)],
-    # Définir le modèle de Stacking en utilisant les modèles de régression de base et le modèle meta-régresseur
+    # Defining the StackingRegressor by combining the sub_models defined above
     model = StackingRegressor(
         estimators=[ ('gb', gb_model),('xgb', xgb_model),('rf', rf_model)],
         final_estimator=meta_regressor)
 
-    # Train the model
+    # Training the model
     model.fit(X_train,y_train)
 
-    # Check the model results
+    # Checking the model results
     print(f'R² = {model.score(X_test,y_test).round(3)}')
     print(f'MAPE = {mean_absolute_percentage_error(y_test, model.predict(X_test)).round(3)}')
 
     return model
 
 
-def save_model(model):
+def save_model(model: object) -> None:
     """
-    Saves the model trained on hard drive at f"{models/{model_name}_{timestamp}.joblib"
+    Saves the trained model on hard drive at f"{models/{model_name}.joblib"
     """
+    if not os.path.isdir('models'): os.mkdir('models')
 
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
     model_name = type(model).__name__
+    print(f'Saving {model_name} model...')
 
-    # save model locally
-    model_path = os.path.join("models", f"{model_name}_{timestamp}.joblib")
+    # Saving model locally
+    model_path = os.path.join("models", f"{model_name}.joblib")
     joblib.dump(model, open(model_path, 'wb'))
+    print(f'{model_name} model saved')
 
 
-def load_model(model):
+def load_model(model: str) -> object:
     """
     This function loads a given model, which can be one of these:
         - StandardScaler
@@ -76,13 +103,13 @@ def load_model(model):
 
     if not os.path.isfile(model_path):
         print(f'Downloading {model} model from GCS...')
-        # The ID of your GCS bucket
+        # ID of the GCS bucket
         bucket_name = "run_pred_model"
 
-        # The ID of your GCS object
+        # ID of the GCS object
         source_blob_name = model_path
 
-        # The path to which the file should be downloaded
+        # Path to which the file should be downloaded
         destination_file_name = model_path
 
         storage_client = storage.Client.from_service_account_json('gcs_credentials.json')
@@ -94,17 +121,46 @@ def load_model(model):
     model = joblib.load(model_path)
     return model
 
-if __name__ == '__main__' :
-    dataset = clean_data('raw_data/raw-data-kaggle.csv')
-    X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
-    X_train_feat = engineer_features(X_train_raw, y_train)
-    X_test_feat = engineer_features(X_test_raw, y_test)
-    X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
-    X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
-    #model = train_best_model(X_train_balanced_scaled_encoded, y_train_balanced, X_test_scaled_encoded, y_test)
-    #save_model(model)
-    #model = load_model()
 
-    #model = load_model('StandardScaler')
-    #assert(model is not None)
-    #print(type(model))
+if __name__ == '__main__' :
+
+    # Testing the data whole preprocessing
+    ## dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    ## X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
+    ## X_train_feat = engineer_features(X_train_raw, y_train)
+    ## X_test_feat = engineer_features(X_test_raw, y_test)
+    ## X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    ## X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+
+    # Testing the load_model and save_model functions
+    ## model = load_model('StandardScaler')
+    ## assert(model is not None)
+    ## print(type(model))
+    ## save_model(model)
+
+    # Training the best model on the train dataset (28k rows), evaluating its performance, and saving the model
+    ## dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    ## X_train_raw, X_test_raw, y_train, y_test = split_data(dataset)
+    ## X_train_feat = engineer_features(X_train_raw, y_train)
+    ## X_test_feat = engineer_features(X_test_raw, y_test)
+    ## X_train_balanced, y_train_balanced = balance_data(X_train_feat=X_train_feat, y_train=y_train)
+    ## X_train_balanced_scaled_encoded, X_test_scaled_encoded = scale_encode_data(X_train_balanced, X_test_feat)
+    ## model = train_best_model(X_train_balanced_scaled_encoded, y_train_balanced, X_test_scaled_encoded, y_test)
+    ## save_model(model)
+
+    # Training the validated best model on the FULL dataset (32k rows) and saving it
+    dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    X = dataset.drop(columns = ['time'])
+    y = dataset.time
+    X_feat = engineer_features(X, y)
+    X_balanced, y_balanced = balance_data(X_train_feat=X_feat, y_train=y)
+    X_balanced_scaled_encoded = scale_encode_data(X_balanced, X_balanced)[0]
+    print('dataset', dataset.shape)
+    print('X', X.shape)
+    print('y', y.shape)
+    print('X_feat', X_feat.shape)
+    print('X_balanced', X_balanced.shape)
+    print('y_balanced', y_balanced.shape)
+    print('X_balanced_scaled_encoded',X_balanced_scaled_encoded.shape)
+    ## model = train_best_model(X_balanced_scaled_encoded, y_balanced, X_balanced_scaled_encoded, y_balanced)
+    ## save_model(model)

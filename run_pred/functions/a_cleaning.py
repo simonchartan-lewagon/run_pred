@@ -1,16 +1,18 @@
 import pandas as pd
 import numpy as np
 
-def clean_data(path):
+def clean_data(path: str) -> pd.DataFrame:
     """
-    Takes the raw .csv dataset and cleans it to make it
-    ready for preprocessing and feature engineering.
+    Takes the raw .csv dataset that was manually downloaded from
+    https://www.kaggle.com/datasets/olegoaer/running-races-strava and
+    stored in a specific path, and cleans it to make it ready for next steps.
     """
     # Importing the raw dataset
     run = pd.read_csv(
         path,
         sep =';'
     )
+
 
     # Dataset initial variable names and units
     ## - athlete
@@ -21,6 +23,7 @@ def clean_data(path):
     ## - elevation gain (m)
     ## - average heart rate (bpm)
 
+
     # Renaming the columns with convenient names
     run.columns = [
         'athlete_id',
@@ -29,8 +32,8 @@ def clean_data(path):
         'distance',
         'time',
         'elevation_gain',
-        'average_heart_rate'
-    ]
+        'average_heart_rate']
+
 
     # Formatting the columns
     ## Categorical variables
@@ -48,6 +51,7 @@ def clean_data(path):
     # Drop duplicates
     run = run.drop_duplicates()
 
+
     # Cleaning columns
 
     ## athlete_id
@@ -61,11 +65,11 @@ def clean_data(path):
     ### --> Removing athlete_id & timestamp duplicates
     run = run.sort_values(
         ['athlete_id','timestamp','average_heart_rate', 'distance'],
-        ascending = [True, True, True, False]).reset_index(drop = True)
-    run = run.drop_duplicates(subset = ['athlete_id','timestamp'])
+        ascending = [True, True, True, False]).reset_index(drop=True)
+    run = run.drop_duplicates(subset=['athlete_id','timestamp'])
 
     ## distance
-    ### --> Removing left and right outliers, i.e. including 2km to 45 km courses
+    ### --> Removing left and right outliers, i.e. including 2 km to 45 km courses
     run = run[run.distance <= 45000]
     run = run[(run.distance >= 2000)]
 
@@ -83,9 +87,6 @@ def clean_data(path):
     run = run[((run.average_heart_rate >= 100) & (run.average_heart_rate <= 200)) | (run.average_heart_rate.isna())]
 
     ### --> Dropping the NaN rows for average_heart_rate
-    ### We might come back to this point and decide to rather drop the whole column
-    ### in case the model performance does not increase with the average_heart_rate
-    ### and its derived features.
     run = run[~(run.average_heart_rate.isna())]
 
     ## pace
@@ -99,6 +100,9 @@ def clean_data(path):
     ### The model used below to calculate the maximum speeds is based on an interpolation
     ### of 2 km, 3 km, 5 km, 10 km, Semi Marathon, and Marathon world records. It has an
     ### R² of 98.8% with the real world records values.
+    ### The idea is that any race where the speed or pseudo_speed has exceeded 90% of
+    ### the interpolated world record speed should be removed, as it does not match
+    ### an amateur (i.e. non-professional) level of running.
 
     coef = 0.9
 
@@ -109,6 +113,7 @@ def clean_data(path):
     run['pseudo_speed'] = ((run.distance + 10*run.elevation_gain)/1000) / (run.time/3600)
     run['max_pseudo_speed'] = (-1.38745 * np.log(run.distance + 10*run.elevation_gain) + 35.6235859)*coef
     run = run[run.pseudo_speed < run.max_pseudo_speed]
+
 
     # Finally, reindexing the dataset and re-formatting
     run = run.reset_index(drop = True)
