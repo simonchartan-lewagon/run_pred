@@ -150,17 +150,11 @@ if __name__ == '__main__' :
 
     # Training the validated best model on the FULL dataset (32k rows) and saving it
     dataset = clean_data('raw_data/raw-data-kaggle.csv')
+    print(dataset.head())
     X = dataset.drop(columns = ['time'])
     y = dataset.time
     X_feat = engineer_features(X, y)
     X_balanced, y_balanced = balance_data(X_train_feat=X_feat, y_train=y)
-    X_balanced_scaled_encoded = scale_encode_data(X_balanced, X_balanced)[0]
-    print('dataset', dataset.shape)
-    print('X', X.shape)
-    print('y', y.shape)
-    print('X_feat', X_feat.shape)
-    print('X_balanced', X_balanced.shape)
-    print('y_balanced', y_balanced.shape)
-    print('X_balanced_scaled_encoded',X_balanced_scaled_encoded.shape)
-    ## model = train_best_model(X_balanced_scaled_encoded, y_balanced, X_balanced_scaled_encoded, y_balanced)
-    ## save_model(model)
+    X_balanced_scaled_encoded = scale_encode_data(X_balanced, X_balanced, save=True)[0]
+    model = train_best_model(X_balanced_scaled_encoded, y_balanced, X_balanced_scaled_encoded, y_balanced)
+    save_model(model)
