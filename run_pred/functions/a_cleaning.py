@@ -41,7 +41,7 @@ def clean_data(path: str) -> pd.DataFrame:
         run[col] = run[col].astype('object')
 
     ## Datetime variables
-    run.timestamp = pd.to_datetime(run.timestamp)
+    run.timestamp = pd.to_datetime(run.timestamp, dayfirst='%Y-%m-%d %H:%M:%s')
 
     ## Numerical variables
     for col in ['distance','time','elevation_gain','average_heart_rate']:

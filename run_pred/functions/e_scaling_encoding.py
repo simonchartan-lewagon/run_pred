@@ -11,7 +11,7 @@ from run_pred.functions.c_feature_engineering import engineer_features
 from run_pred.functions.d_balancing import balance_data
 
 
-def scale_encode_data(X_train: pd.DataFrame, X_test: pd.DataFrame, scaler: object = StandardScaler()) -> tuple[pd.DataFrame, pd.DataFrame]:
+def scale_encode_data(X_train: pd.DataFrame, X_test: pd.DataFrame, scaler: object = StandardScaler(), save: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Scale and encode data using a given scaler.
 
@@ -25,8 +25,8 @@ def scale_encode_data(X_train: pd.DataFrame, X_test: pd.DataFrame, scaler: objec
     """
 
     X_test = pd.DataFrame(X_test,columns = X_train.columns)
-    X_train_scaled, X_test_scaled = scale_features(X_train=X_train, X_test=X_test, scaler = scaler)
-    X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled)
+    X_train_scaled, X_test_scaled = scale_features(X_train=X_train, X_test=X_test, scaler = scaler, save=save)
+    X_train_scaled_encoded, X_test_scaled_encoded = encode_features(X_train=X_train_scaled, X_test=X_test_scaled, save=save)
 
     return X_train_scaled_encoded, X_test_scaled_encoded
 
