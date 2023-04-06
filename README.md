@@ -2,40 +2,46 @@
 
 Source dataset: https://www.kaggle.com/datasets/olegoaer/running-races-strava
 
-The project aims to predict race times using a machine learning model trained on a dataset (after cleaning) of 32,500 races from 105 runners. There will be three different predictions based on the desired performance level or user level.
+The project aims to predict race times using a machine learning model trained on a dataset (after cleaning and rebalancing) of ~35000 races from 105 runners. There will be three different predictions based on the desired performance level or user level.
 
 The initial dataset is composed of 42,116 rows and 7 columns, and includes features such as:
-athlete: the unique identifier for the athlete who completed the race
-gender: the binary category of the athlete, either Male (M) or Female (F)
-timestamp: the date and time (in minutes) when the race began
-distance (in meters): the distance of the race course
-elapsed time (in seconds): the time taken by the athlete to complete the race
-elevation gain (in meters): the elevation gain of the race course
-average heart rate (in BPM): the average heart rate of the athlete during the race
+- athlete: the unique identifier for the athlete who completed the race
+- gender: the binary category of the athlete, either Male (M) or Female (F)
+- timestamp: the date and time (in minutes) when the race began
+- distance (in meters): the distance of the race course
+- elapsed time (in seconds): the time taken by the athlete to complete the race
+- elevation gain (in meters): the elevation gain of the race course
+- average heart rate (in BPM): the average heart rate of the athlete during the race
 
-## preprocessing
+## Preprocessing
 
-### cleaning Data
+### Data cleaning
 
 file: a_cleaning.py
 
 The data has been cleaned by removing duplicates, searching and delate for outliers, and handling missing values.
+
+### Data splitting
+
+file: b_splitting.py
+
+The dataset has been split in train/test set and features/target.
 
 ### Feature engineering
 
 file: c_feature_engineering
 
 Feature engineering has also been performed, including the creation of time-based features such as:
-creating a cyclical feature for weekdays: sin_day, cos_day
+- creating a cyclical feature for weekdays: sin_day, cos_day
 
-creating a cyclical feature for months: sin_month, cos_month
+- creating a cyclical feature for months: sin_month, cos_month
 
-categorical features such as:
-day_am, day_pm: categorize whether the race was held during the morning (am) or afternoon (pm) half of the day.
-day_dawn, day_morning, day_noon, day_afternoon, day_evening: categorize the specific time of day when the race was held.
-season_winter, season_spring, season_summer, season_autumn: categorize the season of the year when the race was held.
+- categorical features such as:
+  - day_am, day_pm: categorize whether the race was held during the morning (am) or afternoon (pm) half of the day.
+  - day_dawn, day_morning, day_noon, day_afternoon, day_evening: categorize the specific time of day when the race was held.
+  - season_winter, season_spring, season_summer, season_autumn: categorize the season of the year when the race was held.
 
-elevation_category: feature computes the elevation ratio of the runs and categorizes them into different categories. The computation is done by dividing the elevation_gain by the distance and multiplying the result by 1000 to get the elevation gained per kilometer. Based on this, the runs are then categorized into the following categories:
+  elevation_category: feature computes the elevation ratio of the runs and categorizes them into different categories. The computation is done by dividing the elevation_gain by the distance and multiplying the result by 1000 to get the elevation gained per kilometer. Based on this, the runs are then categorized into the following categories:
 
     elevation_category_1: runs with no elevation or a small elevation gain (= rolling elevation) of less than 9.5 meters per kilometer.
     elevation_category_2: runs with a moderate/steep elevation gain of 9.5 to 29 meters per kilometer.
@@ -54,43 +60,48 @@ To balance the dataset by gender, the number of races performed by men and women
 
 ### Scaling/encoding
 
+file: e_scaling_encoding.py
+
 Data has been scaled using standard scaler for numerical values.
 Additionally, the gender column has been encoded to numerical values using one-hot encoding.
 
-### Data final
+### Final dataset
 The final DataFrame consists 26 features, which are listed below:
-sin_day
-cos_day
-sin_month
-cos_month
-day_am
-day_pm
-day_dawn
-day_morning
-day_noon
-day_afternoon
-day_evening
-season_winter
-season_spring
-season_summer
-season_autumn
-race_category_1
-race_category_2
-race_category_3
-elevation_category_1
-elevation_category_2
-elevation_category_3
-gender
-distance
-elevation_gain
-average_heart_rate
-elevation_gain_per_km
+- sin_day
+- cos_day
+- sin_month
+- cos_month
+- day_am
+- day_pm
+- day_dawn
+- day_morning
+- day_noon
+- day_afternoon
+- day_evening
+- season_winter
+- season_spring
+- season_summer
+- season_autumn
+- race_category_1
+- race_category_2
+- race_category_3
+- elevation_category_1
+- elevation_category_2
+- elevation_category_3
+- gender
+- distance
+- elevation_gain
+- average_heart_rate
+- elevation_gain_per_km
 
-## model ML
+## Training the ML model
 
-Once the data is ready, we train our model which is a StackingRegressor composed of a RandomForest, GradientBoosting, XGB, and a LinearRegression as the final estimator.
+file: f_training.py
+
+Once the data is ready, we train the best model found during the R&D phase, which is a StackingRegressor composed of a RandomForest, GradientBoosting, XGB, and a LinearRegression as the final estimator.
 
 The model achieved a high accuracy score of 96.9% in R² and a low mean absolute percentage error (MAPE) of 5.4%. This indicates that the model can effectively predict race times based on the input features.
+N.B.: The model can be saved or loaded depending on needs.
 
 Overall, the project demonstrates the effectiveness of machine learning in predicting race times and showcases the importance of feature engineering and data cleaning in achieving accurate predictions.
 
@@ -133,9 +144,9 @@ We have also created a web page where users can view a demo of the results of ou
 
 We welcome contributions to this package, especially in the following areas:
 
-    Improving the accuracy of the predictions for longer distances (e.g., marathon or ultra-marathon).
-    Adapting the package to different datasets and use cases.
-    Enhancing the visualization capabilities of the package.
+- Improving the accuracy of the predictions for longer distances (e.g., marathon or ultra-marathon).
+- Adapting the package to different datasets and use cases.
+- Enhancing the visualization capabilities of the package.
 
 If you're interested in contributing, please feel free to submit a pull request or open an issue to discuss your ideas. We appreciate your help in making this package more useful for the running community!
 
@@ -148,4 +159,4 @@ If you're interested in contributing, please feel free to submit a pull request 
 
 ## Licence
 
-MIT licence
+MIT licence, see licence.md
